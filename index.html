@@ -107,6 +107,37 @@
             background-color: #cc0000;
         }
 
+        .process-btn {
+            background-color: #28a745;
+            color: white;
+            font-size: 1rem;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+            transition: background-color 0.3s ease;
+        }
+
+        .process-btn:hover {
+            background-color: #218838;
+        }
+
+        .speed-input {
+            display: none;
+        }
+
+        .processes-container {
+            margin-top: 20px;
+        }
+
+        .process-btn {
+            width: 100%;
+            font-size: 0.9rem;
+            margin-bottom: 10px; /* Отступ между кнопками */
+        }
+
         /* Мобильная версия */
         @media (max-width: 600px) {
             h1 {
@@ -122,6 +153,11 @@
                 font-size: 1rem;
                 padding: 12px;
             }
+
+            .process-btn {
+                width: 100%;
+                margin-bottom: 10px;
+            }
         }
 
     </style>
@@ -129,48 +165,104 @@
 <body>
     <div class="calculator">
         <h1>Калькулятор "Оратория 29М"</h1>
-        <div class="input-group">
-            <label for="speed">Скорость конвейера (мм/мин):</label>
-            <input type="number" id="speed" placeholder="Введите скорость">
-        </div>
+        
         <div class="input-group">
             <label for="quantity">Количество подложек (шт):</label>
             <input type="number" id="quantity" placeholder="Введите количество">
         </div>
+
+        <!-- Контейнер для кнопок процессов, теперь вертикально расположены -->
+        <div class="processes-container">
+            <button class="process-btn" onclick="setProcess('Cr-Cu')">Cr-Cu</button>
+            <button class="process-btn" onclick="setProcess('Cr')">Cr</button>
+            <button class="process-btn" onclick="setProcess('Ni')">Ni</button>
+        </div>
+
+        <!-- Поле ввода скорости, скрыто по умолчанию -->
+        <div class="input-group speed-input" id="speed-input">
+            <label for="speed">Скорость конвейера (мм/мин):</label>
+            <input type="number" id="speed" placeholder="Введите скорость">
+        </div>
+
+        <!-- Кнопка для расчета -->
         <button onclick="calculateTimes()">Рассчитать</button>
+
+        <!-- Вывод результата -->
         <div id="result"></div>
+
+        <!-- Кнопка для очистки результата -->
         <button class="clear-btn" onclick="clearResult()">Очистить</button>
     </div>
 
     <script>
-        function calculateTimes() {
-            const speed = parseFloat(document.getElementById('speed').value);
-            const quantity = parseInt(document.getElementById('quantity').value);
+        let selectedProcess = '';
+        let initialSpeed = 0;
+        let changeSpeedAt = 0;
+        let userSpeed = 0;
 
-            if (isNaN(speed) || isNaN(quantity) || speed <= 0 || quantity <= 0) {
-                document.getElementById('result').textContent = "Введите корректные данные.";
+        // Функция выбора процесса с заложенными значениями для скорости
+        function setProcess(process) {
+            selectedProcess = process;
+
+            // Задаем начальную скорость и расстояние для изменения скорости для каждого процесса
+            if (process === 'Cr-Cu') {
+                initialSpeed = 27;  // мм/мин
+                changeSpeedAt = 600; // см (60 см)
+            } else if (process === 'Cr') {
+                initialSpeed = 37;  // мм/мин
+                changeSpeedAt = 800; // см (80 см)
+            } else if (process === 'Ni') {
+                initialSpeed = 50;  // мм/мин
+                changeSpeedAt = 1000; // см (100 см)
+            }
+
+            // Показываем поле для ввода скорости
+            document.getElementById('speed-input').style.display = 'block';
+
+            // Обновляем текст результата
+            document.getElementById('result').textContent = `Выбран процесс: ${process}. Введите скорость после достижения соответствующего расстояния.`;
+        }
+
+        function calculateTimes() {
+            const quantity = parseInt(document.getElementById('quantity').value);
+            userSpeed = parseFloat(document.getElementById('speed').value) || initialSpeed;
+
+            if (isNaN(quantity) || quantity <= 0) {
+                document.getElementById('result').textContent = "Введите корректное количество подложек.";
                 return;
             }
 
             const conveyorLength = 1900; // Длина конвейера (мм)
             const productAndGapLength = 125 + 25; // Длина продукции + зазор (мм)
 
-            const timeFirst = conveyorLength / speed; // Время выхода первой подложки (мин)
-            const timeLast = timeFirst + (quantity - 1) * (productAndGapLength / speed); // Время выхода последней подложки (мин)
+            // Время выхода первой подложки с учетом начальной скорости
+            let timeFirst = conveyorLength / initialSpeed;
+
+            // Время выхода последней подложки с учетом изменения скорости
+            let timeLast;
+            if (conveyorLength >= changeSpeedAt * 10) {  // проверяем если скорость меняется
+                const timeToChange = changeSpeedAt * 10 / initialSpeed; // время до изменения скорости
+                const remainingDistance = conveyorLength - changeSpeedAt * 10; // расстояние после изменения скорости
+                const newSpeed = userSpeed; // новая скорость, если введена
+
+                const newTime = remainingDistance / newSpeed;
+                timeLast = timeToChange + newTime;  // время последней подложки
+            } else {
+                // Если не требуется изменения скорости
+                timeLast = timeFirst + (quantity - 1) * (productAndGapLength / initialSpeed);
+            }
 
             document.getElementById('result').innerHTML = `
-                Первая подложка выйдет через: <b>${timeFirst.toFixed(2)}</b> мин.<br>
-                Последняя подложка выйдет через: <b>${timeLast.toFixed(2)}</b> мин.
+                Первая подложка выйдет за ${timeFirst.toFixed(2)} минут.
+                Последняя подложка выйдет за ${timeLast.toFixed(2)} минут.
             `;
         }
 
-        // Очистка результата
         function clearResult() {
-            document.getElementById('speed').value = '';
-            document.getElementById('quantity').value = '';
             document.getElementById('result').innerHTML = '';
+            document.getElementById('quantity').value = '';
+            document.getElementById('speed').value = '';
         }
     </script>
 </body>
 </html>
-
