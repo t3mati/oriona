@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Калькулятор "Оратория 29М"</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f0f8ff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .calculator {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+        .calculator h1 {
+            text-align: center;
+            color: #333;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            display: block;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 10px;
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 18px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <h1>Калькулятор "Оратория 29М"</h1>
+        <div class="input-group">
+            <label for="speed">Скорость конвейера (мм/мин):</label>
+            <input type="number" id="speed" placeholder="Введите скорость">
+        </div>
+        <div class="input-group">
+            <label for="quantity">Количество подложек (шт):</label>
+            <input type="number" id="quantity" placeholder="Введите количество">
+        </div>
+        <button onclick="calculateTimes()">Рассчитать</button>
+        <div id="result"></div>
+    </div>
+    <script>
+        function calculateTimes() {
+            // Получаем данные из полей ввода
+            const speed = parseFloat(document.getElementById('speed').value); // Скорость конвейера (мм/мин)
+            const quantity = parseInt(document.getElementById('quantity').value); // Количество подложек
+
+            // Проверяем валидность ввода
+            if (isNaN(speed) || isNaN(quantity) || speed <= 0 || quantity <= 0) {
+                document.getElementById('result').textContent = "Введите корректные данные.";
+                return;
+            }
+
+            // Константы
+            const conveyorLength = 1900; // Длина конвейера (мм)
+            const productAndGapLength = 125 + 25; // Длина продукции + зазор (мм)
+
+            // Расчёты
+            const timeFirst = conveyorLength / speed; // Время выхода первой подложки (мин)
+            const timeLast = timeFirst + (quantity - 1) * (productAndGapLength / speed); // Время выхода последней подложки (мин)
+
+            // Вывод результатов
+            document.getElementById('result').innerHTML = `
+                Первая подложка выйдет через: <b>${timeFirst.toFixed(2)}</b> мин.<br>
+                Последняя подложка выйдет через: <b>${timeLast.toFixed(2)}</b> мин.
+            `;
+        }
+    </script>
+</body>
+</html>
