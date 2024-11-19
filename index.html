@@ -8,11 +8,12 @@
         body {
             font-family: Arial, sans-serif;
             background: #f0f8ff;
+            margin: 0;
+            padding: 0;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            margin: 0;
         }
         .calculator {
             background: white;
@@ -21,10 +22,14 @@
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
             width: 100%;
             max-width: 400px;
+            box-sizing: border-box;
+            transition: transform 0.2s ease;
         }
         .calculator h1 {
             text-align: center;
             color: #333;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
         }
         .input-group {
             margin-bottom: 15px;
@@ -36,33 +41,53 @@
         }
         input {
             width: 100%;
-            padding: 10px;
+            padding: 12px;
             border: 1px solid #ccc;
             border-radius: 5px;
             box-sizing: border-box;
+            font-size: 1rem;
         }
         button {
             width: 100%;
-            padding: 10px;
+            padding: 14px;
             background: #007bff;
             color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 1.1rem;
+            margin-top: 20px;
         }
         button:hover {
             background: #0056b3;
         }
         #result {
             margin-top: 20px;
-            padding: 10px;
+            padding: 15px;
             background: #f9f9f9;
             border: 1px solid #ddd;
             border-radius: 5px;
             text-align: center;
-            font-size: 18px;
+            font-size: 1.2rem;
             color: #333;
+        }
+        /* Мобильные устройства */
+        @media screen and (max-width: 600px) {
+            .calculator {
+                width: 90%;
+                padding: 15px;
+            }
+            .calculator h1 {
+                font-size: 1.2rem;
+            }
+            button {
+                font-size: 1rem;
+                padding: 12px;
+            }
+            input {
+                font-size: 1rem;
+                padding: 10px;
+            }
         }
     </style>
 </head>
