@@ -180,7 +180,7 @@
         </div>
 
         <!-- Поле ввода скорости -->
-        <div class="input-group speed-input" id="speed-input">
+        <div class="input-group speed-input" id="speed-input" style="display:none;">
             <label for="speed">Скорость конвейера (мм/мин):</label>
             <input type="number" id="speed" placeholder="Введите скорость" oninput="calculateTimes()">
         </div>
@@ -235,11 +235,23 @@
         }
 
         function calculateTimes() {
+            // Проверяем, выбран ли процесс
+            if (selectedProcess === '') {
+                document.getElementById('result').textContent = "Выберите процесс для расчёта.";
+                return;
+            }
+
             const quantity = parseInt(document.getElementById('quantity').value);
             userSpeed = parseFloat(document.getElementById('speed').value) || initialSpeed;
 
+            // Проверка на корректность введенных данных
             if (isNaN(quantity) || quantity <= 0) {
                 document.getElementById('result').textContent = "Введите корректное количество подложек.";
+                return;
+            }
+
+            if (userSpeed <= 0) {
+                document.getElementById('result').textContent = "Введите скорость конвейера.";
                 return;
             }
 
@@ -268,9 +280,21 @@
                 timeLast = totalDistanceForLastSubstrate / initialSpeed;
             }
 
+            function formatTime(minutes) {
+                if (minutes === 'неизвестно') return '<span style="color:red;">неизвестно</span>';
+                const hours = Math.floor(minutes / 60);
+                const mins = Math.floor(minutes % 60);
+                let timeStr = '';
+                if (hours > 0) {
+                    timeStr += `${hours}ч. `;
+                }
+                timeStr += `${mins} мин`;
+                return timeStr;
+            }
+
             document.getElementById('result').innerHTML = `
-                Первая подложка выйдет за ${timeFirst.toFixed(2)} минут.
-                Последняя подложка выйдет за ${timeLast.toFixed(2)} минут.
+                Первая подложка выйдет за ${formatTime(timeFirst)}.
+                Последняя подложка выйдет за ${formatTime(timeLast)}.
             `;
         }
 
@@ -280,6 +304,7 @@
             document.getElementById('speed').value = '';
             const buttons = document.querySelectorAll('.process-btn');
             buttons.forEach(button => button.classList.remove('selected-process')); // Сбрасываем выделение кнопок
+            selectedProcess = ''; // Сбрасываем выбранный процесс
         }
     </script>
 </body>
