@@ -205,15 +205,15 @@
             selectedProcess = process;
 
             // Задаем начальную скорость и расстояние для изменения скорости для каждого процесса
-            if (process === 'Cr-Cu') {
-                initialSpeed = 27;  // мм/мин
-                changeSpeedAt = 600; // см (60 см)
-            } else if (process === 'Cr') {
-                initialSpeed = 37;  // мм/мин
-                changeSpeedAt = 800; // см (80 см)
-            } else if (process === 'Ni') {
-                initialSpeed = 50;  // мм/мин
-                changeSpeedAt = 1000; // см (100 см)
+        if (process === 'Cr-Cu') {
+            initialSpeed = 50;  // мм/мин
+            changeSpeedAt = 820; // мм (82 см)
+        } else if (process === 'Cr') {
+            initialSpeed = 70;  // мм/мин
+            changeSpeedAt = 820; // мм (82 см)
+        } else if (process === 'Ni') {
+            initialSpeed = 50;  // мм/мин
+            changeSpeedAt = 1460; // мм (146 см)
             }
 
             // Показываем поле для ввода скорости
