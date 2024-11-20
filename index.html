@@ -108,7 +108,7 @@
         }
 
         .process-btn {
-            background-color: #28a745;
+            background-color: #007bff;
             color: white;
             font-size: 1rem;
             padding: 10px;
@@ -120,17 +120,13 @@
             transition: background-color 0.3s ease;
         }
 
-        .process-btn.active {
-             background-color: #ffa500; /* Оранжевый цвет */
-    color: white; /* Белый текст для контраста */
-        }
-
         .process-btn:hover {
-            background-color: #218838;
+            background-color: #0056b3;
         }
 
-        .speed-input {
-            display: none;
+        .selected-process {
+            background-color: #ff7f00 !important;
+            color: white !important;
         }
 
         .processes-container {
@@ -140,7 +136,7 @@
         .process-btn {
             width: 100%;
             font-size: 0.9rem;
-            margin-bottom: 10px; /* Отступ между кнопками */
+            margin-bottom: 10px;
         }
 
         /* Мобильная версия */
@@ -173,20 +169,20 @@
         
         <div class="input-group">
             <label for="quantity">Количество подложек (шт):</label>
-            <input type="number" id="quantity" placeholder="Введите количество">
+            <input type="number" id="quantity" placeholder="Введите количество" oninput="calculateTimes()">
         </div>
 
-        <!-- Контейнер для кнопок процессов, теперь вертикально расположены -->
+        <!-- Контейнер для кнопок процессов -->
         <div class="processes-container">
-            <button class="process-btn" id="btn-cr-cu" onclick="setProcess('Cr-Cu', this)">Cr-Cu</button>
-            <button class="process-btn" id="btn-cr" onclick="setProcess('Cr', this)">Cr</button>
-            <button class="process-btn" id="btn-ni" onclick="setProcess('Ni', this)">Ni</button>
+            <button class="process-btn" onclick="setProcess('Cr-Cu')">Cr-Cu</button>
+            <button class="process-btn" onclick="setProcess('Cr')">Cr</button>
+            <button class="process-btn" onclick="setProcess('Ni')">Ni</button>
         </div>
 
-        <!-- Поле ввода скорости, скрыто по умолчанию -->
+        <!-- Поле ввода скорости -->
         <div class="input-group speed-input" id="speed-input">
             <label for="speed">Скорость конвейера (мм/мин):</label>
-            <input type="number" id="speed" placeholder="Введите скорость">
+            <input type="number" id="speed" placeholder="Введите скорость" oninput="calculateTimes()">
         </div>
 
         <!-- Кнопка для расчета -->
@@ -205,29 +201,37 @@
         let changeSpeedAt = 0;
         let userSpeed = 0;
 
-        function setProcess(process, button) {
+        // Функция выбора процесса с заложенными значениями для скорости
+        function setProcess(process) {
             selectedProcess = process;
 
-            // Сбрасываем состояние всех кнопок
-            const buttons = document.querySelectorAll('.process-btn');
-            buttons.forEach(btn => btn.classList.remove('active'));
-
-            // Устанавливаем активное состояние для выбранной кнопки
-            button.classList.add('active');
-
+            // Задаем начальную скорость и расстояние для изменения скорости для каждого процесса
             if (process === 'Cr-Cu') {
-                initialSpeed = 50; // мм/мин
+                initialSpeed = 50;  // мм/мин
                 changeSpeedAt = 820; // мм (82 см)
             } else if (process === 'Cr') {
-                initialSpeed = 70; // мм/мин
+                initialSpeed = 70;  // мм/мин
                 changeSpeedAt = 820; // мм (82 см)
             } else if (process === 'Ni') {
-                initialSpeed = 50; // мм/мин
+                initialSpeed = 50;  // мм/мин
                 changeSpeedAt = 1460; // мм (146 см)
             }
 
+            // Обновление цвета кнопки
+            const buttons = document.querySelectorAll('.process-btn');
+            buttons.forEach(button => button.classList.remove('selected-process')); // Убираем выделение с всех кнопок
+
+            // Выделяем текущую кнопку
+            const selectedButton = Array.from(buttons).find(button => button.textContent === process);
+            if (selectedButton) {
+                selectedButton.classList.add('selected-process');
+            }
+
+            // Показываем поле для ввода скорости
             document.getElementById('speed-input').style.display = 'block';
-            document.getElementById('result').textContent = `Выбран процесс: ${process}. Введите скорость после достижения соответствующего расстояния.`;
+
+            // Обновляем текст результата
+            document.getElementById('result').textContent = `Выбран процесс: ${process}. Введите скорость для расчёта времени.`;
         }
 
         function calculateTimes() {
@@ -239,23 +243,33 @@
                 return;
             }
 
-            const conveyorLength = 1900; // мм
-            const productAndGapLength = 125 + 25; // мм
+            const conveyorLength = 1900; // Длина конвейера (мм)
+            const productAndGapLength = 125 + 25; // Длина продукции + зазор (мм)
 
+            // Время выхода первой подложки с учетом начальной скорости
             let timeFirst = conveyorLength / initialSpeed;
-            let timeLast;
 
-            if (conveyorLength >= changeSpeedAt) {
-                const timeToChange = changeSpeedAt / initialSpeed;
-                const remainingDistance = conveyorLength - changeSpeedAt;
-                const newTime = remainingDistance / userSpeed;
-                timeLast = timeToChange + newTime;
+            // Время выхода последней подложки с учетом изменения скорости
+            let timeLast;
+            if (changeSpeedAt > 0 && conveyorLength > changeSpeedAt) {
+                // Если требуется изменение скорости
+                const timeToChange = changeSpeedAt / initialSpeed; // Время до изменения скорости
+                const remainingDistance = conveyorLength - changeSpeedAt; // Оставшееся расстояние после изменения скорости
+                const newSpeed = userSpeed; // Новая скорость после изменения
+
+                // Рассчитываем время последней подложки
+                const totalDistanceForLastSubstrate = conveyorLength + (quantity - 1) * productAndGapLength;
+                const timeAfterChange = (totalDistanceForLastSubstrate - changeSpeedAt) / newSpeed;
+
+                timeLast = timeToChange + timeAfterChange;
             } else {
-                timeLast = timeFirst + (quantity - 1) * (productAndGapLength / initialSpeed);
+                // Если изменение скорости не требуется
+                const totalDistanceForLastSubstrate = conveyorLength + (quantity - 1) * productAndGapLength;
+                timeLast = totalDistanceForLastSubstrate / initialSpeed;
             }
 
             document.getElementById('result').innerHTML = `
-                Первая подложка выйдет за ${timeFirst.toFixed(2)} минут.<br>
+                Первая подложка выйдет за ${timeFirst.toFixed(2)} минут.
                 Последняя подложка выйдет за ${timeLast.toFixed(2)} минут.
             `;
         }
@@ -264,9 +278,8 @@
             document.getElementById('result').innerHTML = '';
             document.getElementById('quantity').value = '';
             document.getElementById('speed').value = '';
-
             const buttons = document.querySelectorAll('.process-btn');
-            buttons.forEach(btn => btn.classList.remove('active'));
+            buttons.forEach(button => button.classList.remove('selected-process')); // Сбрасываем выделение кнопок
         }
     </script>
 </body>
