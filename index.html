@@ -120,6 +120,11 @@
             transition: background-color 0.3s ease;
         }
 
+        .process-btn.active {
+             background-color: #ffa500; /* Оранжевый цвет */
+    color: white; /* Белый текст для контраста */
+        }
+
         .process-btn:hover {
             background-color: #218838;
         }
@@ -173,9 +178,9 @@
 
         <!-- Контейнер для кнопок процессов, теперь вертикально расположены -->
         <div class="processes-container">
-            <button class="process-btn" onclick="setProcess('Cr-Cu')">Cr-Cu</button>
-            <button class="process-btn" onclick="setProcess('Cr')">Cr</button>
-            <button class="process-btn" onclick="setProcess('Ni')">Ni</button>
+            <button class="process-btn" id="btn-cr-cu" onclick="setProcess('Cr-Cu', this)">Cr-Cu</button>
+            <button class="process-btn" id="btn-cr" onclick="setProcess('Cr', this)">Cr</button>
+            <button class="process-btn" id="btn-ni" onclick="setProcess('Ni', this)">Ni</button>
         </div>
 
         <!-- Поле ввода скорости, скрыто по умолчанию -->
@@ -200,26 +205,28 @@
         let changeSpeedAt = 0;
         let userSpeed = 0;
 
-        // Функция выбора процесса с заложенными значениями для скорости
-        function setProcess(process) {
+        function setProcess(process, button) {
             selectedProcess = process;
 
-            // Задаем начальную скорость и расстояние для изменения скорости для каждого процесса
-        if (process === 'Cr-Cu') {
-            initialSpeed = 50;  // мм/мин
-            changeSpeedAt = 820; // мм (82 см)
-        } else if (process === 'Cr') {
-            initialSpeed = 70;  // мм/мин
-            changeSpeedAt = 820; // мм (82 см)
-        } else if (process === 'Ni') {
-            initialSpeed = 50;  // мм/мин
-            changeSpeedAt = 1460; // мм (146 см)
+            // Сбрасываем состояние всех кнопок
+            const buttons = document.querySelectorAll('.process-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+
+            // Устанавливаем активное состояние для выбранной кнопки
+            button.classList.add('active');
+
+            if (process === 'Cr-Cu') {
+                initialSpeed = 50; // мм/мин
+                changeSpeedAt = 820; // мм (82 см)
+            } else if (process === 'Cr') {
+                initialSpeed = 70; // мм/мин
+                changeSpeedAt = 820; // мм (82 см)
+            } else if (process === 'Ni') {
+                initialSpeed = 50; // мм/мин
+                changeSpeedAt = 1460; // мм (146 см)
             }
 
-            // Показываем поле для ввода скорости
             document.getElementById('speed-input').style.display = 'block';
-
-            // Обновляем текст результата
             document.getElementById('result').textContent = `Выбран процесс: ${process}. Введите скорость после достижения соответствующего расстояния.`;
         }
 
@@ -232,28 +239,23 @@
                 return;
             }
 
-            const conveyorLength = 1900; // Длина конвейера (мм)
-            const productAndGapLength = 125 + 25; // Длина продукции + зазор (мм)
+            const conveyorLength = 1900; // мм
+            const productAndGapLength = 125 + 25; // мм
 
-            // Время выхода первой подложки с учетом начальной скорости
             let timeFirst = conveyorLength / initialSpeed;
-
-            // Время выхода последней подложки с учетом изменения скорости
             let timeLast;
-            if (conveyorLength >= changeSpeedAt * 10) {  // проверяем если скорость меняется
-                const timeToChange = changeSpeedAt * 10 / initialSpeed; // время до изменения скорости
-                const remainingDistance = conveyorLength - changeSpeedAt * 10; // расстояние после изменения скорости
-                const newSpeed = userSpeed; // новая скорость, если введена
 
-                const newTime = remainingDistance / newSpeed;
-                timeLast = timeToChange + newTime;  // время последней подложки
+            if (conveyorLength >= changeSpeedAt) {
+                const timeToChange = changeSpeedAt / initialSpeed;
+                const remainingDistance = conveyorLength - changeSpeedAt;
+                const newTime = remainingDistance / userSpeed;
+                timeLast = timeToChange + newTime;
             } else {
-                // Если не требуется изменения скорости
                 timeLast = timeFirst + (quantity - 1) * (productAndGapLength / initialSpeed);
             }
 
             document.getElementById('result').innerHTML = `
-                Первая подложка выйдет за ${timeFirst.toFixed(2)} минут.
+                Первая подложка выйдет за ${timeFirst.toFixed(2)} минут.<br>
                 Последняя подложка выйдет за ${timeLast.toFixed(2)} минут.
             `;
         }
@@ -262,6 +264,9 @@
             document.getElementById('result').innerHTML = '';
             document.getElementById('quantity').value = '';
             document.getElementById('speed').value = '';
+
+            const buttons = document.querySelectorAll('.process-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
         }
     </script>
 </body>
