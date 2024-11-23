@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -160,7 +161,6 @@
                 margin-bottom: 10px;
             }
         }
-
     </style>
 </head>
 <body>
@@ -169,29 +169,22 @@
         
         <div class="input-group">
             <label for="quantity">Количество подложек (шт):</label>
-            <input type="number" id="quantity" placeholder="Введите количество" oninput="calculateTimes()">
+            <input type="number" id="quantity" placeholder="Введите количество (шт)" oninput="calculateTimes()">
         </div>
 
-        <!-- Контейнер для кнопок процессов -->
         <div class="processes-container">
             <button class="process-btn" onclick="setProcess('Cr-Cu')">Cr-Cu</button>
             <button class="process-btn" onclick="setProcess('Cr')">Cr</button>
             <button class="process-btn" onclick="setProcess('Ni')">Ni</button>
         </div>
 
-        <!-- Поле ввода скорости -->
         <div class="input-group speed-input" id="speed-input" style="display:none;">
             <label for="speed">Скорость конвейера (мм/мин):</label>
-            <input type="number" id="speed" placeholder="Введите скорость" oninput="calculateTimes()">
+            <input type="number" id="speed" placeholder="Введите скорость (мм/мин)" oninput="calculateTimes()">
         </div>
 
-        <!-- Кнопка для расчета -->
         <button onclick="calculateTimes()">Рассчитать</button>
-
-        <!-- Вывод результата -->
         <div id="result"></div>
-
-        <!-- Кнопка для очистки результата -->
         <button class="clear-btn" onclick="clearResult()">Очистить</button>
     </div>
 
@@ -199,98 +192,59 @@
         let selectedProcess = '';
         let initialSpeed = 0;
         let changeSpeedAt = 0;
-        let userSpeed = 0;
 
-        // Функция выбора процесса с заложенными значениями для скорости
         function setProcess(process) {
             selectedProcess = process;
 
-            // Задаем начальную скорость и расстояние для изменения скорости для каждого процесса
             if (process === 'Cr-Cu') {
-                initialSpeed = 50;  // мм/мин
-                changeSpeedAt = 820; // мм (82 см)
+                initialSpeed = 50;
+                changeSpeedAt = 820;
             } else if (process === 'Cr') {
-                initialSpeed = 70;  // мм/мин
-                changeSpeedAt = 820; // мм (82 см)
+                initialSpeed = 70;
+                changeSpeedAt = 820;
             } else if (process === 'Ni') {
-                initialSpeed = 50;  // мм/мин
-                changeSpeedAt = 1460; // мм (146 см)
+                initialSpeed = 50;
+                changeSpeedAt = 1460;
             }
 
-            // Обновление цвета кнопки
-            const buttons = document.querySelectorAll('.process-btn');
-            buttons.forEach(button => button.classList.remove('selected-process')); // Убираем выделение с всех кнопок
 
-            // Выделяем текущую кнопку
+            const buttons = document.querySelectorAll('.process-btn');
+            buttons.forEach(button => button.classList.remove('selected-process'));
+
             const selectedButton = Array.from(buttons).find(button => button.textContent === process);
             if (selectedButton) {
                 selectedButton.classList.add('selected-process');
             }
 
-            // Показываем поле для ввода скорости
             document.getElementById('speed-input').style.display = 'block';
 
-            // Обновляем текст результата
             document.getElementById('result').textContent = `Выбран процесс: ${process}. Введите скорость для расчёта времени.`;
         }
 
         function calculateTimes() {
-            // Проверяем, выбран ли процесс
             if (selectedProcess === '') {
-                document.getElementById('result').textContent = "Выберите процесс для расчёта.";
+                showError("Выберите процесс для расчёта.");
                 return;
             }
 
             const quantity = parseInt(document.getElementById('quantity').value);
-            userSpeed = parseFloat(document.getElementById('speed').value) || initialSpeed;
+            const userSpeed = parseFloat(document.getElementById('speed').value) || initialSpeed;
 
-            // Проверка на корректность введенных данных
             if (isNaN(quantity) || quantity <= 0) {
-                document.getElementById('result').textContent = "Введите корректное количество подложек.";
+                showError("Введите корректное количество подложек.");
                 return;
             }
 
             if (userSpeed <= 0) {
-                document.getElementById('result').textContent = "Введите скорость конвейера.";
+                showError("Введите корректную скорость конвейера.");
                 return;
             }
 
-            const conveyorLength = 1900; // Длина конвейера (мм)
-            const productAndGapLength = 125 + 25; // Длина продукции + зазор (мм)
+            const conveyorLength = 1900; 
+            const productAndGapLength = 125 + 25;
 
-            // Время выхода первой подложки с учетом начальной скорости
-            let timeFirst = conveyorLength / initialSpeed;
-
-            // Время выхода последней подложки с учетом изменения скорости
-            let timeLast;
-            if (changeSpeedAt > 0 && conveyorLength > changeSpeedAt) {
-                // Если требуется изменение скорости
-                const timeToChange = changeSpeedAt / initialSpeed; // Время до изменения скорости
-                const remainingDistance = conveyorLength - changeSpeedAt; // Оставшееся расстояние после изменения скорости
-                const newSpeed = userSpeed; // Новая скорость после изменения
-
-                // Рассчитываем время последней подложки
-                const totalDistanceForLastSubstrate = conveyorLength + (quantity - 1) * productAndGapLength;
-                const timeAfterChange = (totalDistanceForLastSubstrate - changeSpeedAt) / newSpeed;
-
-                timeLast = timeToChange + timeAfterChange;
-            } else {
-                // Если изменение скорости не требуется
-                const totalDistanceForLastSubstrate = conveyorLength + (quantity - 1) * productAndGapLength;
-                timeLast = totalDistanceForLastSubstrate / initialSpeed;
-            }
-
-            function formatTime(minutes) {
-                if (minutes === 'неизвестно') return '<span style="color:red;">неизвестно</span>';
-                const hours = Math.floor(minutes / 60);
-                const mins = Math.floor(minutes % 60);
-                let timeStr = '';
-                if (hours > 0) {
-                    timeStr += `${hours}ч. `;
-                }
-                timeStr += `${mins} мин`;
-                return timeStr;
-            }
+            const timeFirst = conveyorLength / initialSpeed;
+            const timeLast = calculateLastTime(conveyorLength, productAndGapLength, quantity, userSpeed);
 
             document.getElementById('result').innerHTML = `
                 Первая подложка выйдет за ${formatTime(timeFirst)}.
@@ -298,13 +252,37 @@
             `;
         }
 
+        function calculateLastTime(conveyorLength, productAndGapLength, quantity, userSpeed) {
+            if (changeSpeedAt > 0 && conveyorLength > changeSpeedAt) {
+                const timeToChange = changeSpeedAt / initialSpeed;
+                const remainingDistance = conveyorLength - changeSpeedAt;
+                const totalDistance = conveyorLength + (quantity - 1) * productAndGapLength;
+                return timeToChange + (totalDistance - changeSpeedAt) / userSpeed;
+            } else {
+                const totalDistance = conveyorLength + (quantity - 1) * productAndGapLength;
+                return totalDistance / initialSpeed;
+            }
+        }
+
+        function formatTime(minutes) {
+            const hours = Math.floor(minutes / 60);
+            const mins = Math.floor(minutes % 60);
+            return hours > 0 ? `${hours}ч ${mins}м` : `${mins}м`;
+        }
+
+        function showError(message) {
+            document.getElementById('result').innerHTML = `<span style="color: red;">Ошибка: ${message}</span>`;
+        }
+
         function clearResult() {
             document.getElementById('result').innerHTML = '';
             document.getElementById('quantity').value = '';
             document.getElementById('speed').value = '';
+            document.getElementById('speed-input').style.display = 'none';
+
             const buttons = document.querySelectorAll('.process-btn');
-            buttons.forEach(button => button.classList.remove('selected-process')); // Сбрасываем выделение кнопок
-            selectedProcess = ''; // Сбрасываем выбранный процесс
+            buttons.forEach(button => button.classList.remove('selected-process'));
+            selectedProcess = '';
         }
     </script>
 </body>
